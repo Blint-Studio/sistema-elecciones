@@ -14,10 +14,20 @@ app.use(express.json());
 const authRoutes = require("./routes/authRoutes");
 const resultadosRoutes = require("./routes/resultadosRoutes");
 const extraEndpoints = require("./routes/extraEndpoints");
+const barriosRoutes = require('./routes/barriosRoutes');
+const escuelasRoutes = require('./routes/escuelasRoutes');
+const mesasRoutes = require('./routes/mesasRoutes');
+const encargadosSeccionalRoutes = require('./routes/encargadosSeccionalRoutes');
+const encargadosEscuelaRoutes = require('./routes/encargadosEscuelaRoutes');
 
 app.use("/auth", authRoutes);
 app.use("/resultados", resultadosRoutes);
 app.use("/", extraEndpoints);
+app.use('/api/barrios', barriosRoutes);
+app.use('/api/escuelas', escuelasRoutes);
+app.use('/api/mesas', mesasRoutes);
+app.use('/api/encargados-seccional', encargadosSeccionalRoutes);
+app.use('/api/encargados-escuela', encargadosEscuelaRoutes);
 
 // Ruta raíz de prueba
 app.get("/", (req, res) => {

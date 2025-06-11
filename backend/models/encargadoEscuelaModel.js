@@ -1,9 +1,9 @@
 const db = require('../config/db');
 
-const Barrios = {
+const EncargadosEscuela = {
   getAll: () => {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM barrios', (err, results) => {
+      db.query('SELECT * FROM encargados_escuela', (err, results) => {
         if (err) return reject(err);
         resolve(results);
       });
@@ -12,7 +12,7 @@ const Barrios = {
 
   getById: (id) => {
     return new Promise((resolve, reject) => {
-      db.query('SELECT * FROM barrios WHERE id = ?', [id], (err, results) => {
+      db.query('SELECT * FROM encargados_escuela WHERE id = ?', [id], (err, results) => {
         if (err) return reject(err);
         resolve(results[0]);
       });
@@ -21,7 +21,7 @@ const Barrios = {
 
   create: (data) => {
     return new Promise((resolve, reject) => {
-      db.query('INSERT INTO barrios SET ?', data, (err, result) => {
+      db.query('INSERT INTO encargados_escuela SET ?', data, (err, result) => {
         if (err) return reject(err);
         resolve({ id: result.insertId, ...data });
       });
@@ -30,7 +30,7 @@ const Barrios = {
 
   update: (id, data) => {
     return new Promise((resolve, reject) => {
-      db.query('UPDATE barrios SET ? WHERE id = ?', [data, id], (err) => {
+      db.query('UPDATE encargados_escuela SET ? WHERE id = ?', [data, id], (err) => {
         if (err) return reject(err);
         resolve({ id, ...data });
       });
@@ -39,7 +39,7 @@ const Barrios = {
 
   delete: (id) => {
     return new Promise((resolve, reject) => {
-      db.query('DELETE FROM barrios WHERE id = ?', [id], (err) => {
+      db.query('DELETE FROM encargados_escuela WHERE id = ?', [id], (err) => {
         if (err) return reject(err);
         resolve();
       });
@@ -47,4 +47,4 @@ const Barrios = {
   }
 };
 
-module.exports = Barrios;
+module.exports = EncargadosEscuela;

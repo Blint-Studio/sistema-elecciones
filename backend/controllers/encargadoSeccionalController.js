@@ -1,25 +1,25 @@
 const EncargadosSeccional = require('../models/encargadosSeccionalModel');
 
-exports.getAll = async (req, res) => {
+exports.getAll = async (req, res, next) => {
   try {
     const encargados = await EncargadosSeccional.getAll();
     res.json(encargados);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener los encargados de seccional' });
+    next(err);
   }
 };
 
-exports.getById = async (req, res) => {
+exports.getById = async (req, res, next) => {
   try {
     const encargado = await EncargadosSeccional.getById(req.params.id);
     if (!encargado) return res.status(404).json({ error: 'Encargado no encontrado' });
     res.json(encargado);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener el encargado' });
+    next(err);
   }
 };
 
-exports.create = async (req, res) => {
+exports.create = async (req, res, next) => {
   try {
     const { nombre, telefono, id_seccional } = req.body;
     if (!nombre || !telefono || !id_seccional) {
@@ -28,11 +28,11 @@ exports.create = async (req, res) => {
     const nuevo = await EncargadosSeccional.create({ nombre, telefono, id_seccional });
     res.status(201).json(nuevo);
   } catch (err) {
-    res.status(500).json({ error: 'Error al crear el encargado' });
+    next(err);
   }
 };
 
-exports.update = async (req, res) => {
+exports.update = async (req, res, next) => {
   try {
     const { nombre, telefono, id_seccional } = req.body;
     if (!nombre || !telefono || !id_seccional) {
@@ -43,17 +43,17 @@ exports.update = async (req, res) => {
     const actualizado = await EncargadosSeccional.update(req.params.id, { nombre, telefono, id_seccional });
     res.json(actualizado);
   } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar el encargado' });
+    next(err);
   }
 };
 
-exports.delete = async (req, res) => {
+exports.delete = async (req, res, next) => {
   try {
     const encargado = await EncargadosSeccional.getById(req.params.id);
     if (!encargado) return res.status(404).json({ error: 'Encargado no encontrado' });
     await EncargadosSeccional.delete(req.params.id);
     res.json({ message: 'Encargado eliminado' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar el encargado' });
+    next(err);
   }
 };

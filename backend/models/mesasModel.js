@@ -19,6 +19,15 @@ const Mesas = {
     });
   },
 
+  getByEscuela: (escuela_id) => {
+    return new Promise((resolve, reject) => {
+      db.query('SELECT * FROM mesas WHERE escuela_id = ? ORDER BY numero_mesa ASC', [escuela_id], (err, results) => {
+        if (err) return reject(err);
+        resolve(results);
+      });
+    });
+  },
+
   create: (data) => {
     return new Promise((resolve, reject) => {
       db.query('INSERT INTO mesas SET ?', data, (err, result) => {

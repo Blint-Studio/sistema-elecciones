@@ -1,59 +1,87 @@
-const EncargadosEscuela = require('../models/encargadosEscuelaModel');
+const db = require('../config/db');
+const encargadoEscuelaSchema = require('../validators/encargadoEscuelaValidator');
 
-exports.getAll = async (req, res) => {
+exports.crearEncargadoEscuela = async (req, res, next) => {
   try {
-    const encargados = await EncargadosEscuela.getAll();
+    const { error } = encargadoEscuelaSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
+    }
+
+    const { nombre, telefono, id_escuela } = req.body;
+    const [result] = await db.query(
+      'INSERT INTO encargados_escuela (nombre, telefono, id_escuela) VALUES (?, ?, ?)',
+      [nombre, telefono, id_escuela]
+    );
+    res.status(201).json({ message: 'Encargado de escuela creado', id: result.insertId });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.obtenerEncargadosEscuela = async (req, res, next) => {
+  try {
+    const [encargados] = await db.query('SELECT * FROM encargados_escuela');
     res.json(encargados);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener los encargados de escuela' });
+    next(err);
   }
 };
 
-exports.getById = async (req, res) => {
+exports.obtenerEncargadoEscuelaPorId = async (req, res, next) => {
   try {
-    const encargado = await EncargadosEscuela.getById(req.params.id);
-    if (!encargado) return res.status(404).json({ error: 'Encargado no encontrado' });
-    res.json(encargado);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener el encargado' });
-  }
-};
-
-exports.create = async (req, res) => {
-  try {
-    const { nombre, telefono, id_escuela } = req.body;
-    if (!nombre || !telefono || !id_escuela) {
-      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    const { id } = req.params;
+    const [encargados] = await db.query('SELECT * FROM encargados_escuela WHERE id = ?', [id]);
+    if (encargados.length === 0) {
+      return res.status(404).json({ error: true, message: 'Encargado de escuela no encontrado' });
     }
-    const nuevo = await EncargadosEscuela.create({ nombre, telefono, id_escuela });
-    res.status(201).json(nuevo);
+    res.json(encargados[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Error al crear el encargado' });
+    next(err);
   }
 };
 
-exports.update = async (req, res) => {
+exports.actualizarEncargadoEscuela = async (req, res, next) => {
   try {
-    const { nombre, telefono, id_escuela } = req.body;
-    if (!nombre || !telefono || !id_escuela) {
-      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    const { error } = encargadoEscuelaSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
     }
-    const encargado = await EncargadosEscuela.getById(req.params.id);
-    if (!encargado) return res.status(404).json({ error: 'Encargado no encontrado' });
-    const actualizado = await EncargadosEscuela.update(req.params.id, { nombre, telefono, id_escuela });
-    res.json(actualizado);
+
+    const { id } = req.params;
+    const { nombre, telefono, id_escuela } = req.body;
+    const [result] = await db.query(
+      'UPDATE encargados_escuela SET nombre = ?, telefono = ?, id_escuela = ? WHERE id = ?',
+      [nombre, telefono, id_escuela, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: true, message: 'Encargado de escuela no encontrado' });
+    }
+    res.json({ message: 'Encargado de escuela actualizado' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar el encargado' });
+    next(err);
   }
 };
 
-exports.delete = async (req, res) => {
+exports.eliminarEncargadoEscuela = async (req, res, next) => {
   try {
-    const encargado = await EncargadosEscuela.getById(req.params.id);
-    if (!encargado) return res.status(404).json({ error: 'Encargado no encontrado' });
-    await EncargadosEscuela.delete(req.params.id);
-    res.json({ message: 'Encargado eliminado' });
+    const { id } = req.params;
+    const [result] = await db.query('DELETE FROM encargados_escuela WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: true, message: 'Encargado de escuela no encontrado' });
+    }
+    res.json({ message: 'Encargado de escuela eliminado' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar el encargado' });
+    next(err);
+  }
+};
+
+// Ejemplo de función
+exports.getAllEncargadosEscuela = async (req, res, next) => {
+  try {
+    const [encargados] = await db.query('SELECT * FROM encargados_escuela');
+    res.json(encargados);
+  } catch (err) {
+    next(err);
   }
 };

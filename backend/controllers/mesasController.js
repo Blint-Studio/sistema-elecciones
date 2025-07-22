@@ -1,59 +1,90 @@
-const Mesas = require('../models/mesasModel');
+const db = require('../config/db');
+const mesaSchema = require('../validators/mesaValidator');
 
-exports.getAllMesas = async (req, res) => {
+exports.crearMesa = async (req, res, next) => {
   try {
-    const mesas = await Mesas.getAll();
+    const { error } = mesaSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
+    }
+
+    const { numero_mesa, escuela_id } = req.body;
+    const [result] = await db.query(
+      'INSERT INTO mesas (numero_mesa, escuela_id) VALUES (?, ?)',
+      [numero_mesa, escuela_id]
+    );
+    res.status(201).json({ message: 'Mesa creada', id: result.insertId });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.obtenerMesas = async (req, res, next) => {
+  try {
+    const [mesas] = await db.query('SELECT * FROM mesas ORDER BY numero_mesa ASC');
     res.json(mesas);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener las mesas' });
+    next(err);
   }
 };
 
-exports.getMesaById = async (req, res) => {
+exports.obtenerMesaPorId = async (req, res, next) => {
   try {
-    const mesa = await Mesas.getById(req.params.id);
-    if (!mesa) return res.status(404).json({ error: 'Mesa no encontrada' });
-    res.json(mesa);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener la mesa' });
-  }
-};
-
-exports.createMesa = async (req, res) => {
-  try {
-    const { numero, id_escuela } = req.body;
-    if (!numero || !id_escuela) {
-      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    const { id } = req.params;
+    const [mesas] = await db.query('SELECT * FROM mesas WHERE id = ?', [id]);
+    if (mesas.length === 0) {
+      return res.status(404).json({ error: true, message: 'Mesa no encontrada' });
     }
-    const nuevaMesa = await Mesas.create({ numero, id_escuela });
-    res.status(201).json(nuevaMesa);
+    res.json(mesas[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Error al crear la mesa' });
+    next(err);
   }
 };
 
-exports.updateMesa = async (req, res) => {
+exports.actualizarMesa = async (req, res, next) => {
   try {
-    const { numero, id_escuela } = req.body;
-    if (!numero || !id_escuela) {
-      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    const { error } = mesaSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
     }
-    const mesa = await Mesas.getById(req.params.id);
-    if (!mesa) return res.status(404).json({ error: 'Mesa no encontrada' });
-    const actualizada = await Mesas.update(req.params.id, { numero, id_escuela });
-    res.json(actualizada);
+
+    const { id } = req.params;
+    const { numero_mesa, escuela_id } = req.body;
+    const [result] = await db.query(
+      'UPDATE mesas SET numero_mesa = ?, escuela_id = ? WHERE id = ?',
+      [numero_mesa, escuela_id, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: true, message: 'Mesa no encontrada' });
+    }
+    res.json({ message: 'Mesa actualizada' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar la mesa' });
+    next(err);
   }
 };
 
-exports.deleteMesa = async (req, res) => {
+exports.eliminarMesa = async (req, res, next) => {
   try {
-    const mesa = await Mesas.getById(req.params.id);
-    if (!mesa) return res.status(404).json({ error: 'Mesa no encontrada' });
-    await Mesas.delete(req.params.id);
+    const { id } = req.params;
+    const [result] = await db.query('DELETE FROM mesas WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: true, message: 'Mesa no encontrada' });
+    }
     res.json({ message: 'Mesa eliminada' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar la mesa' });
+    next(err);
+  }
+};
+
+exports.obtenerMesasPorEscuela = async (req, res, next) => {
+  try {
+    const escuelaId = req.query.escuela;
+    const [mesas] = await db.query(
+      'SELECT id, numero_mesa FROM mesas WHERE escuela_id = ? ORDER BY numero_mesa ASC',
+      [escuelaId]
+    );
+    res.json(mesas);
+  } catch (err) {
+    next(err);
   }
 };

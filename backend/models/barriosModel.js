@@ -30,10 +30,14 @@ const Barrios = {
 
   update: (id, data) => {
     return new Promise((resolve, reject) => {
-      db.query('UPDATE barrios SET ? WHERE id = ?', [data, id], (err) => {
-        if (err) return reject(err);
-        resolve({ id, ...data });
-      });
+      db.query(
+        'UPDATE barrios SET nombre = ?, seccional_nombre = ?, subcircuito = ? WHERE id = ?',
+        [data.nombre, data.seccional_nombre, data.subcircuito, id],
+        (err) => {
+          if (err) return reject(err);
+          resolve({ id, ...data });
+        }
+      );
     });
   },
 

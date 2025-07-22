@@ -1,36 +1,85 @@
 const express = require("express");
 const router = express.Router();
-const db = require("../config/db");
-const jwt = require("jsonwebtoken");
+const authController = require("../controllers/authController");
+const auth = require("../middlewares/auth");
 
-router.post("/login", (req, res) => {
-  const { email, password } = req.body;
+/**
+ * @swagger
+ * /auth/login:
+ *   post:
+ *     summary: Iniciar sesión y obtener un token JWT
+ *     tags:
+ *       - Autenticación
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 example: admin@cordoba.com
+ *               password:
+ *                 type: string
+ *                 example: admin123
+ *     responses:
+ *       200:
+ *         description: Login exitoso, devuelve el token y datos del usuario
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 token:
+ *                   type: string
+ *                 usuario:
+ *                   type: object
+ *                   properties:
+ *                     email:
+ *                       type: string
+ *                     rol:
+ *                       type: string
+ *       401:
+ *         description: Contraseña incorrecta
+ *       404:
+ *         description: Usuario no encontrado
+ */
 
-  db.query("SELECT * FROM usuarios WHERE email = ?", [email], (err, results) => {
-    if (err) {
-      console.error("Error DB:", err);
-      return res.status(500).json({ error: "Error en la base de datos" });
-    }
+router.post("/login", authController.login);
 
-    if (results.length === 0) {
-      return res.status(404).json({ error: "Usuario no encontrado" });
-    }
+/**
+ * @swagger
+ * /auth/verify:
+ *   get:
+ *     summary: Verificar validez del token JWT
+ *     tags:
+ *       - Autenticación
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token válido
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 valid:
+ *                   type: boolean
+ *                 usuario:
+ *                   type: object
+ *                   properties:
+ *                     id:
+ *                       type: integer
+ *                     email:
+ *                       type: string
+ *                     rol:
+ *                       type: string
+ *       401:
+ *         description: Token inválido o expirado
+ */
 
-    const usuario = results[0];
-
-    // Comparación sin bcrypt (modo desarrollo)
-    if (password !== usuario.password) {
-      return res.status(401).json({ error: "Contraseña incorrecta (texto plano)" });
-    }
-
-    const token = jwt.sign(
-      { id: usuario.id, email: usuario.email, rol: usuario.rol },
-      process.env.JWT_SECRET || "claveultrasecreta",
-      { expiresIn: "8h" }
-    );
-
-    res.json({ token, usuario: { email: usuario.email, rol: usuario.rol } });
-  });
-});
+router.get("/verify", auth, authController.verify);
 
 module.exports = router;

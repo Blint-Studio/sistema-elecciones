@@ -1,59 +1,95 @@
-const Barrios = require('../models/barriosModel');
+const db = require('../config/db');
+const barrioSchema = require('../validators/barrioValidator');
 
-exports.getAllBarrios = async (req, res) => {
+exports.crearBarrio = async (req, res, next) => {
   try {
-    const barrios = await Barrios.getAll();
+    const { error } = barrioSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
+    }
+
+    const { nombre } = req.body;
+    const [result] = await db.query(
+      'INSERT INTO barrios (nombre) VALUES (?)',
+      [nombre]
+    );
+    res.status(201).json({ message: 'Barrio creado', id: result.insertId });
+  } catch (err) {
+    next(err);
+  }
+};
+
+exports.obtenerBarrios = async (req, res, next) => {
+  try {
+    const [barrios] = await db.query(`
+      SELECT b.id, b.nombre, b.seccional_nombre, b.subcircuito,
+        (SELECT COUNT(*) FROM militantes m WHERE m.id_barrio = b.id) AS cantidad_militantes
+      FROM barrios b
+      GROUP BY b.id
+    `);
     res.json(barrios);
   } catch (err) {
-    res.status(500).json({ error: 'Error al obtener los barrios' });
+    next(err);
   }
 };
 
-exports.getBarrioById = async (req, res) => {
+exports.obtenerBarrioPorId = async (req, res, next) => {
   try {
-    const barrio = await Barrios.getById(req.params.id);
-    if (!barrio) return res.status(404).json({ error: 'Barrio no encontrado' });
-    res.json(barrio);
-  } catch (err) {
-    res.status(500).json({ error: 'Error al obtener el barrio' });
-  }
-};
-
-exports.createBarrio = async (req, res) => {
-  try {
-    const { nombre, id_seccional } = req.body;
-    if (!nombre || !id_seccional) {
-      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    const { id } = req.params;
+    const [barrios] = await db.query('SELECT * FROM barrios WHERE id = ?', [id]);
+    if (barrios.length === 0) {
+      return res.status(404).json({ error: true, message: 'Barrio no encontrado' });
     }
-    const nuevoBarrio = await Barrios.create({ nombre, id_seccional });
-    res.status(201).json(nuevoBarrio);
+    res.json(barrios[0]);
   } catch (err) {
-    res.status(500).json({ error: 'Error al crear el barrio' });
+    next(err);
   }
 };
 
-exports.updateBarrio = async (req, res) => {
+exports.actualizarBarrio = async (req, res, next) => {
   try {
-    const { nombre, id_seccional } = req.body;
-    if (!nombre || !id_seccional) {
-      return res.status(400).json({ error: 'Faltan datos requeridos' });
+    const { error } = barrioSchema.validate(req.body);
+    if (error) {
+      return res.status(400).json({ error: true, message: error.details[0].message });
     }
-    const barrio = await Barrios.getById(req.params.id);
-    if (!barrio) return res.status(404).json({ error: 'Barrio no encontrado' });
-    const actualizado = await Barrios.update(req.params.id, { nombre, id_seccional });
-    res.json(actualizado);
+
+    const { id } = req.params;
+    const { nombre, seccional_nombre, subcircuito } = req.body;
+    const [result] = await db.query(
+      'UPDATE barrios SET nombre = ?, seccional_nombre = ?, subcircuito = ? WHERE id = ?',
+      [nombre, seccional_nombre, subcircuito, id]
+    );
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: true, message: 'Barrio no encontrado' });
+    }
+    res.json({ message: 'Barrio actualizado' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar el barrio' });
+    next(err);
   }
 };
 
-exports.deleteBarrio = async (req, res) => {
+exports.eliminarBarrio = async (req, res, next) => {
   try {
-    const barrio = await Barrios.getById(req.params.id);
-    if (!barrio) return res.status(404).json({ error: 'Barrio no encontrado' });
-    await Barrios.delete(req.params.id);
+    const { id } = req.params;
+    const [result] = await db.query('DELETE FROM barrios WHERE id = ?', [id]);
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: true, message: 'Barrio no encontrado' });
+    }
     res.json({ message: 'Barrio eliminado' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar el barrio' });
+    next(err);
+  }
+};
+
+// Nuevo endpoint para obtener militantes de un barrio
+exports.obtenerMilitantesPorBarrio = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const [militantes] = await db.query(
+      `SELECT * FROM militantes WHERE id_barrio = ?`, [id]
+    );
+    res.json(militantes);
+  } catch (err) {
+    next(err);
   }
 };

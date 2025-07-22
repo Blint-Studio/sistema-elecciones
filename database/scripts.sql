@@ -24,8 +24,8 @@ CREATE TABLE escuelas (
 CREATE TABLE mesas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     numero_mesa VARCHAR(10) NOT NULL,
-    id_escuela INT,
-    FOREIGN KEY (id_escuela) REFERENCES escuelas(id)
+    escuela_id INT,
+    FOREIGN KEY (escuela_id) REFERENCES escuelas(id)
 );
 
 -- Crear tabla de Tipos de Elección
@@ -46,17 +46,19 @@ CREATE TABLE listas_electorales (
 -- Crear tabla de Resultados
 CREATE TABLE resultados (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    id_tipo_eleccion INT,
-    id_mesa INT,
     fecha DATE,
-    votos_por_lista JSON,
-    total_validos INT,
-    total_nulos INT,
-    total_blancos INT,
+    id_tipo_eleccion INT,
+    id_escuela INT,
+    id_mesa INT,
     total_votantes INT,
-    total_padron INT,
+    frente_civico INT DEFAULT 0,
+    peronismo INT DEFAULT 0,
+    otro INT DEFAULT 0,
+    total_nulos INT DEFAULT 0,
+    total_blancos INT DEFAULT 0,
     FOREIGN KEY (id_tipo_eleccion) REFERENCES tipos_eleccion(id),
-    FOREIGN KEY (id_mesa) REFERENCES mesas(id)
+    FOREIGN KEY (id_mesa) REFERENCES mesas(id),
+    FOREIGN KEY (id_escuela) REFERENCES escuelas(id)
 );
 
 -- Crear tabla de Usuarios

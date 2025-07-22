@@ -28,7 +28,73 @@ const usuarios = [
     email: "lector@cordoba.com",
     password: "lector123",
     rol: "lector"
-  }
+  },
+  {
+    nombre: "Martin Juez",
+    email: "Martin Juez",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Agustin Nostrala",
+    email: "Agustin Nostrala",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Cuni Arias",
+    email: "Cuni Arias",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Gonzalo Bargas",
+    email: "Gonzalo Bargas",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Nahuel Bustos",
+    email: "Nahuel Bustos",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Ignacio Tello",
+    email: "Ignacio Tello",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "German Flaherty",
+    email: "German Flaherty",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Facundo Nostrala",
+    email: "Facundo Nostrala",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Jeremias Caceres",
+    email: "Jeremias Caceres",
+    password: "MartinJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Luis Juez",
+    email: "Luis Juez",
+    password: "LuisJuez2027",
+    rol: "admin"
+  },
+  {
+    nombre: "Walter Nostrala",
+    email: "Walter Nostrala",
+    password: "LuisJuez2027",
+    rol: "admin"
+  },
 ];
 
 async function crearUsuarios() {

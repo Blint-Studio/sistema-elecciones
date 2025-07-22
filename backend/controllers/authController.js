@@ -12,11 +12,15 @@ exports.login = async (req, res, next) => {
     if (!email || !password) {
       return res.status(400).json({ 
         error: true, 
-        message: 'Email y contraseña son requeridos' 
+        message: 'Usuario/email y contraseña son requeridos' 
       });
     }
 
-    const [users] = await db.query('SELECT * FROM usuarios WHERE email = ?', [email]);
+    // Buscar usuario por email O por nombre
+    const [users] = await db.query(
+      'SELECT * FROM usuarios WHERE email = ? OR nombre = ?', 
+      [email, email]
+    );
     
     if (users.length === 0) {
       return res.status(401).json({ 

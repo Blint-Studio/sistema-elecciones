@@ -1,0 +1,13 @@
+.read-only-chip {
+  pointer-events: none !important;
+}
+
+/* Estilo para mantener la apariencia correcta cuando se usa pointer-events: none */
+.read-only-chip:hover {
+  cursor: default;
+}
+
+/* Estilos adicionales para mejorar la apariencia visual sin interacción */
+.read-only-chip .MuiChip-deleteIcon {
+  display: none;
+}

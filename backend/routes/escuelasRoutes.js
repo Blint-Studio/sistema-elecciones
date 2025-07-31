@@ -5,6 +5,7 @@ const escuelaSchema = require('../validators/escuelaValidator');
 const validate = require('../middlewares/validate');
 const auth = require('../middlewares/auth');
 const { verificarPermiso } = require('../middlewares/roles');
+const { validarAccesoSeccional } = require('../middlewares/seccional');
 
 /**
  * @swagger
@@ -37,8 +38,8 @@ const { verificarPermiso } = require('../middlewares/roles');
  *         description: Token no proporcionado o inválido
  */
 
-router.get('/', auth, verificarPermiso('read'), escuelasController.obtenerEscuelas);
-router.get('/:id', auth, verificarPermiso('read'), escuelasController.obtenerEscuelaPorId);
+router.get('/', auth, verificarPermiso('read'), validarAccesoSeccional, escuelasController.obtenerEscuelas);
+router.get('/:id', auth, verificarPermiso('read'), validarAccesoSeccional, escuelasController.obtenerEscuelaPorId);
 
 /**
  * @swagger
@@ -85,13 +86,13 @@ router.get('/:id', auth, verificarPermiso('read'), escuelasController.obtenerEsc
  *         description: No autorizado
  */
 
-router.post('/', auth, verificarPermiso('write'), validate(escuelaSchema), escuelasController.crearEscuela);
-router.put('/:id', auth, verificarPermiso('write'), validate(escuelaSchema), escuelasController.actualizarEscuela);
-router.delete('/:id', auth, verificarPermiso('delete'), escuelasController.eliminarEscuela);
+router.post('/', auth, verificarPermiso('write'), validarAccesoSeccional, validate(escuelaSchema), escuelasController.crearEscuela);
+router.put('/:id', auth, verificarPermiso('write'), validarAccesoSeccional, validate(escuelaSchema), escuelasController.actualizarEscuela);
+router.delete('/:id', auth, verificarPermiso('delete'), validarAccesoSeccional, escuelasController.eliminarEscuela);
 
 // Rutas para manejo de encargados
-router.get('/encargados/disponibles', auth, verificarPermiso('read'), escuelasController.obtenerEncargadosDisponibles);
-router.put('/:id/encargado', auth, verificarPermiso('write'), escuelasController.asignarEncargado);
-router.delete('/:id/encargado', auth, verificarPermiso('write'), escuelasController.removerEncargado);
+router.get('/encargados/disponibles', auth, verificarPermiso('read'), validarAccesoSeccional, escuelasController.obtenerEncargadosDisponibles);
+router.put('/:id/encargado', auth, verificarPermiso('write'), validarAccesoSeccional, escuelasController.asignarEncargado);
+router.delete('/:id/encargado', auth, verificarPermiso('write'), validarAccesoSeccional, escuelasController.removerEncargado);
 
 module.exports = router;

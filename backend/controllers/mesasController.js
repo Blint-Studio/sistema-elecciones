@@ -1,5 +1,6 @@
 const db = require('../config/db');
 const mesaSchema = require('../validators/mesaValidator');
+const { filtrarPorSeccional, agregarFiltroSeccional } = require('../middlewares/seccional');
 
 exports.crearMesa = async (req, res, next) => {
   try {
@@ -9,6 +10,27 @@ exports.crearMesa = async (req, res, next) => {
     }
 
     const { numero_mesa, escuela_id } = req.body;
+    
+    // Verificar que la escuela pertenece a la seccional del usuario
+    if (req.user.rol === 'seccional') {
+      const [escuela] = await db.query(
+        'SELECT seccional_nombre FROM escuelas WHERE id = ?', 
+        [escuela_id]
+      );
+      
+      if (escuela.length === 0) {
+        return res.status(404).json({ error: true, message: 'Escuela no encontrada' });
+      }
+      
+      const numeroSeccional = parseInt(escuela[0].seccional_nombre.replace(/\D/g, ''));
+      if (numeroSeccional !== req.user.seccional_asignada) {
+        return res.status(403).json({ 
+          error: true, 
+          message: `Solo puede crear mesas en escuelas de la Seccional ${req.user.seccional_asignada}` 
+        });
+      }
+    }
+
     const [result] = await db.query(
       'INSERT INTO mesas (numero_mesa, escuela_id) VALUES (?, ?)',
       [numero_mesa, escuela_id]
@@ -21,7 +43,16 @@ exports.crearMesa = async (req, res, next) => {
 
 exports.obtenerMesas = async (req, res, next) => {
   try {
-    const [mesas] = await db.query('SELECT * FROM mesas ORDER BY numero_mesa ASC');
+    const baseQuery = `
+      SELECT m.*, e.seccional_nombre 
+      FROM mesas m 
+      JOIN escuelas e ON m.escuela_id = e.id 
+      ORDER BY m.numero_mesa ASC`;
+    
+    // Aplicar filtro de seccional
+    const { query, params } = agregarFiltroSeccional(req.user, baseQuery);
+    const [mesas] = await db.query(query, params);
+    
     res.json(mesas);
   } catch (err) {
     next(err);

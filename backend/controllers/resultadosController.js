@@ -1,11 +1,12 @@
 const db = require('../config/db');
 const { actualizarTotalesPorSeccional } = require('../utils/seccionalUpdater');
+const { filtrarPorSeccional, agregarFiltroSeccional } = require('../middlewares/seccional');
 
 // Obtener todos los resultados
 exports.obtenerResultados = async (req, res, next) => {
   try {
     const escuelaId = req.query.escuela;
-    let query = `
+    let baseQuery = `
       SELECT 
         r.id,
         r.fecha,
@@ -20,21 +21,25 @@ exports.obtenerResultados = async (req, res, next) => {
         r.total_nulos,
         r.total_blancos,
         m.numero_mesa,
-        e.nombre AS escuela_nombre
+        e.nombre AS escuela_nombre,
+        e.seccional_nombre
       FROM resultados r
       LEFT JOIN mesas m ON r.id_mesa = m.id
       LEFT JOIN escuelas e ON r.id_escuela = e.id
     `;
     
-    const params = [];
+    let params = [];
     if (escuelaId) {
-      query += ' WHERE r.id_escuela = ?';
+      baseQuery += ' WHERE r.id_escuela = ?';
       params.push(escuelaId);
     }
     
-    query += ' ORDER BY m.numero_mesa ASC, r.fecha DESC';
+    // Aplicar filtro de seccional
+    const { query, params: finalParams } = agregarFiltroSeccional(req.user, baseQuery, params);
     
-    const [resultados] = await db.query(query, params);
+    const finalQuery = query + ' ORDER BY m.numero_mesa ASC, r.fecha DESC';
+    
+    const [resultados] = await db.query(finalQuery, finalParams);
     res.json(resultados);
   } catch (err) {
     console.error('Error al obtener resultados:', err);

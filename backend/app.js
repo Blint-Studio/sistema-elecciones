@@ -6,6 +6,7 @@ const swaggerDocs = require('./swagger');
 
 // Rutas
 const authRoutes = require("./routes/authRoutes");
+const debugRoutes = require("./routes/debugRoutes");
 const resultadosRoutes = require("./routes/resultadosRoutes");
 const resultadosSubcircuitoRoutes = require("./routes/resultadosSubcircuitoRoutes");
 const extraEndpoints = require("./routes/extraEndpoints");
@@ -86,6 +87,7 @@ app.get('/api/public/instituciones', async (req, res) => {
 
 // Rutas normales (con autenticación)
 app.use("/api/auth", authRoutes);
+app.use("/api/debug", debugRoutes);
 app.use("/api/resultados", resultadosRoutes);
 app.use("/api/resultados-subcircuito", resultadosSubcircuitoRoutes);
 app.use("/api/extra", extraEndpoints);

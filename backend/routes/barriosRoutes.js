@@ -7,6 +7,7 @@ const auth = require('../middlewares/auth');
 const optionalAuth = require('../middlewares/optionalAuth');
 const optionalPermission = require('../middlewares/optionalPermission');
 const { verificarPermiso } = require('../middlewares/roles');
+const { validarAccesoSeccional } = require('../middlewares/seccional');
 
 /**
  * @swagger
@@ -36,9 +37,10 @@ const { verificarPermiso } = require('../middlewares/roles');
  */
 
 // Rutas con autenticación opcional (permite acceso público para lectura)
-router.get('/', optionalAuth, barriosController.obtenerBarrios);
-router.get('/:id', optionalAuth, barriosController.obtenerBarrioPorId);
-router.get('/:id/militantes', optionalAuth, barriosController.obtenerMilitantesPorBarrio);
+router.get('/', optionalAuth, validarAccesoSeccional, barriosController.obtenerBarrios);
+router.get('/dirigentes/resumen', optionalAuth, validarAccesoSeccional, barriosController.obtenerResumenDirigentes);
+router.get('/:id', optionalAuth, validarAccesoSeccional, barriosController.obtenerBarrioPorId);
+router.get('/:id/militantes', optionalAuth, validarAccesoSeccional, barriosController.obtenerMilitantesPorBarrio);
 router.get('/:id', auth, verificarPermiso('read'), barriosController.obtenerBarrioPorId);
 router.get('/:id/militantes', auth, verificarPermiso('read'), barriosController.obtenerMilitantesPorBarrio);
 

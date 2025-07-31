@@ -1,9 +1,19 @@
 const db = require('../config/db');
 const Instituciones = require('../models/institucionesModel');
+const { filtrarPorSeccional, agregarFiltroSeccional } = require('../middlewares/seccional');
 
 exports.getAll = async (req, res, next) => {
   try {
-    const [instituciones] = await Instituciones.getAll();
+    let baseQuery = `SELECT * FROM instituciones`;
+    let params = [];
+    
+    // Si es usuario seccional, filtrar por su seccional
+    if (req.user && req.user.rol === 'seccional' && req.user.seccional_asignada) {
+      baseQuery += ` WHERE seccional = ?`;
+      params.push(req.user.seccional_asignada.toString());
+    }
+    
+    const [instituciones] = await db.query(baseQuery, params);
     res.json(instituciones);
   } catch (err) {
     next(err);

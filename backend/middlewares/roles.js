@@ -23,6 +23,14 @@ const PERMISOS = {
     export: false,
     manage_users: false,
     access_all: false
+  },
+  seccional: {
+    read: true,
+    write: true,
+    delete: true,
+    export: false,
+    manage_users: false,
+    access_all: false
   }
 };
 

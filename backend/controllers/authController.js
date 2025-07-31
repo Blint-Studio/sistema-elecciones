@@ -40,15 +40,14 @@ exports.login = async (req, res, next) => {
     }
     
     // Generar token con información del usuario
-    const token = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        rol: user.rol 
-      }, 
-      JWT_SECRET, 
-      { expiresIn: '8h' }
-    );
+    const tokenPayload = { 
+      id: user.id, 
+      email: user.email, 
+      rol: user.rol,
+      seccional_asignada: user.seccional_asignada
+    };
+    
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '8h' });
     
     // Respuesta exitosa
     res.json({ 
@@ -57,7 +56,8 @@ exports.login = async (req, res, next) => {
         id: user.id, 
         email: user.email, 
         rol: user.rol,
-        nombre: user.nombre || user.email
+        nombre: user.nombre || user.email,
+        seccional_asignada: user.seccional_asignada
       } 
     });
   } catch (err) {
@@ -70,7 +70,7 @@ exports.login = async (req, res, next) => {
 exports.verify = async (req, res, next) => {
   try {
     // El middleware de auth ya verificó el token y puso el usuario en req.user
-    const { id, email, rol } = req.user;
+    const { id, email, rol, seccional_asignada } = req.user;
     
     // Verificar que el usuario aún existe en la base de datos
     const [users] = await db.query('SELECT * FROM usuarios WHERE id = ?', [id]);
@@ -90,7 +90,8 @@ exports.verify = async (req, res, next) => {
         id: user.id,
         email: user.email,
         rol: user.rol,
-        nombre: user.nombre || user.email
+        nombre: user.nombre || user.email,
+        seccional_asignada: user.seccional_asignada
       }
     });
   } catch (err) {

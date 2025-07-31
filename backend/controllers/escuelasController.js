@@ -1,10 +1,11 @@
 const db = require('../config/db');
 const escuelaSchema = require('../validators/escuelaValidator');
+const { filtrarPorSeccional, agregarFiltroSeccional } = require('../middlewares/seccional');
 
 // Obtener todas las escuelas con información del encargado
 exports.obtenerEscuelas = async (req, res, next) => {
   try {
-    const [escuelas] = await db.query(`
+    let baseQuery = `
       SELECT DISTINCT
         e.id,
         e.nombre,
@@ -20,11 +21,21 @@ exports.obtenerEscuelas = async (req, res, next) => {
         m.instagram as encargado_instagram,
         MIN(mes.numero_mesa) as primera_mesa
       FROM escuelas e
-      LEFT JOIN militantes m ON e.id_encargado = m.id AND m.categoria = 'encargado_escuela'
+      LEFT JOIN militantes m ON e.id_encargado = m.id AND m.categoria = 'encargado de escuela'
       LEFT JOIN mesas mes ON e.id = mes.escuela_id
-      GROUP BY e.id
-      ORDER BY MIN(mes.numero_mesa) ASC, e.id ASC
-    `);
+    `;
+    
+    let params = [];
+    
+    // Si es usuario seccional, filtrar por su seccional
+    if (req.user && req.user.rol === 'seccional' && req.user.seccional_asignada) {
+      baseQuery += ` WHERE e.seccional_nombre = ?`;
+      params.push(req.user.seccional_asignada.toString());
+    }
+    
+    baseQuery += ` GROUP BY e.id ORDER BY MIN(mes.numero_mesa) ASC, e.id ASC`;
+
+    const [escuelas] = await db.query(baseQuery, params);
     
     res.json(escuelas);
   } catch (err) {
@@ -54,7 +65,7 @@ exports.obtenerEscuelaPorId = async (req, res, next) => {
         m.tipo_trabajo as encargado_tipo_trabajo,
         b.nombre as encargado_barrio_nombre
       FROM escuelas e
-      LEFT JOIN militantes m ON e.id_encargado = m.id AND m.categoria = 'encargado_escuela'
+      LEFT JOIN militantes m ON e.id_encargado = m.id AND m.categoria = 'encargado de escuela'
       LEFT JOIN barrios b ON m.id_barrio = b.id
       WHERE e.id = ?
     `, [id]);
@@ -84,14 +95,14 @@ exports.asignarEncargado = async (req, res, next) => {
     
     // Verificar que el militante existe y tiene la categoría correcta
     const [militante] = await db.query(
-      'SELECT id FROM militantes WHERE id = ? AND categoria = "encargado_escuela"',
+      'SELECT id FROM militantes WHERE id = ? AND categoria = "encargado de escuela"',
       [encargado_id]
     );
     
     if (militante.length === 0) {
       return res.status(400).json({ 
         error: true, 
-        message: 'El militante especificado no existe o no tiene la categoría "encargado_escuela"' 
+        message: 'El militante especificado no existe o no tiene la categoría "encargado de escuela"' 
       });
     }
     
@@ -163,7 +174,7 @@ exports.obtenerEncargadosDisponibles = async (req, res, next) => {
       FROM militantes m
       LEFT JOIN barrios b ON m.id_barrio = b.id
       LEFT JOIN escuelas e ON e.id_encargado = m.id
-      WHERE m.categoria = 'encargado_escuela'
+      WHERE m.categoria = 'encargado de escuela'
       ORDER BY m.apellido ASC, m.nombre ASC
     `);
     

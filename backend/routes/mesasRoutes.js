@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const mesasController = require('../controllers/mesasController');
 const auth = require('../middlewares/auth');
+const { validarAccesoSeccional } = require('../middlewares/seccional');
 
 /**
  * @swagger
@@ -32,6 +33,6 @@ const auth = require('../middlewares/auth');
  *         description: Token no proporcionado o inválido
  */
 
-router.get('/', auth, mesasController.obtenerMesasPorEscuela);
+router.get('/', auth, validarAccesoSeccional, mesasController.obtenerMesasPorEscuela);
 
 module.exports = router;

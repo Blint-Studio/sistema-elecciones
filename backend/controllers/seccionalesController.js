@@ -90,66 +90,68 @@ exports.obtenerResumenSeccionales = async (req, res, next) => {
     
     // Generar las 14 seccionales con estadísticas
     for (let i = 1; i <= 14; i++) {
-      const numeroSeccional = i.toString().padStart(2, '0'); // "01", "02", etc.
-      const numeroSeccionalSinCero = i.toString(); // "1", "2", etc.
+      const numeroSeccional = i.toString().padStart(2, '0'); // "01", "02", etc. (para display)
+      const numeroSeccionalDB = i.toString(); // "1", "2", etc. (para consultas DB)
       const nombreSeccional = `Seccional ${numeroSeccional}`;
       
-      // Obtener estadísticas de barrios (usan números sin cero: "1", "2", etc.)
+      // TODAS las consultas usan números sin cero porque así están en la DB
+      
+      // Obtener estadísticas de barrios
       const [barriosStats] = await db.query(`
         SELECT COUNT(DISTINCT id) as total_barrios
         FROM barrios 
         WHERE seccional_nombre = ?
-      `, [numeroSeccionalSinCero]);
+      `, [numeroSeccionalDB]);
       
-      // Obtener estadísticas de instituciones (escuelas usan números con cero: "01", "02", etc.)
-      const [institucionesStats] = await db.query(`
-        SELECT COUNT(DISTINCT id) as total_instituciones
+      // Obtener estadísticas de escuelas 
+      const [escuelasStats] = await db.query(`
+        SELECT COUNT(DISTINCT id) as total_escuelas
         FROM escuelas 
         WHERE seccional_nombre = ?
-      `, [numeroSeccional]);
+      `, [numeroSeccionalDB]);
       
-      // Obtener estadísticas de militantes (militantes -> barrios -> seccional_nombre sin cero)
+      // Obtener estadísticas de instituciones
+      const [institucionesStats] = await db.query(`
+        SELECT COUNT(DISTINCT i.id) as total_instituciones
+        FROM instituciones i
+        JOIN barrios b ON i.id_barrio = b.id
+        WHERE b.seccional_nombre = ?
+      `, [numeroSeccionalDB]);
+      
+      // Obtener estadísticas de dirigentes
+      const [dirigentesStats] = await db.query(`
+        SELECT COUNT(DISTINCT m.id) as total_dirigentes
+        FROM militantes m
+        JOIN barrios b ON m.id_barrio = b.id
+        WHERE b.seccional_nombre = ? AND m.categoria = 'dirigente'
+      `, [numeroSeccionalDB]);
+      
+      // Obtener estadísticas de militantes
       const [militantesStats] = await db.query(`
         SELECT COUNT(DISTINCT m.id) as total_militantes
         FROM militantes m
         JOIN barrios b ON m.id_barrio = b.id
         WHERE b.seccional_nombre = ?
-      `, [numeroSeccionalSinCero]);
+      `, [numeroSeccionalDB]);
       
-      // Obtener estadísticas de mesas (mesas -> escuelas -> seccional_nombre con cero)
+      // Obtener estadísticas de mesas
       const [mesasStats] = await db.query(`
         SELECT COUNT(DISTINCT m.id) as total_mesas
         FROM mesas m
         JOIN escuelas e ON m.escuela_id = e.id
         WHERE e.seccional_nombre = ?
-      `, [numeroSeccional]);
-      
-      // Obtener estadísticas de resultados (resultados -> mesas -> escuelas -> seccional_nombre con cero)
-      const [resultadosStats] = await db.query(`
-        SELECT COUNT(DISTINCT r.id) as total_resultados
-        FROM resultados r
-        JOIN mesas m ON r.id_mesa = m.id
-        JOIN escuelas e ON m.escuela_id = e.id
-        WHERE e.seccional_nombre = ?
-      `, [numeroSeccional]);
-      
-      // Obtener estadísticas de resultados de subcircuito (elecciones antiguas)
-      const [resultadosSubcircuitoStats] = await db.query(`
-        SELECT COUNT(DISTINCT rs.id) as total_resultados_subcircuito
-        FROM resultados_subcircuito rs
-        WHERE rs.numero_seccional = ?
-      `, [numeroSeccional]);
+      `, [numeroSeccionalDB]);
       
       resumenSeccionales.push({
         numero: numeroSeccional,
         nombre: nombreSeccional,
         estadisticas: {
           total_barrios: barriosStats[0]?.total_barrios || 0,
-          total_instituciones: institucionesStats[0]?.total_instituciones || 0,
+          total_escuelas: escuelasStats[0]?.total_escuelas || 0,
           total_militantes: militantesStats[0]?.total_militantes || 0,
           total_mesas: mesasStats[0]?.total_mesas || 0,
-          total_resultados: resultadosStats[0]?.total_resultados || 0,
-          total_resultados_subcircuito: resultadosSubcircuitoStats[0]?.total_resultados_subcircuito || 0
+          total_instituciones: institucionesStats[0]?.total_instituciones || 0,
+          total_dirigentes: dirigentesStats[0]?.total_dirigentes || 0
         }
       });
     }

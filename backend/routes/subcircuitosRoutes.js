@@ -3,6 +3,7 @@ const router = express.Router();
 const subcircuitosController = require('../controllers/subcircuitosController');
 const auth = require('../middlewares/auth');
 const { verificarPermiso } = require('../middlewares/roles');
+const { validarAccesoSeccional } = require('../middlewares/seccional');
 
 /**
  * @swagger
@@ -59,9 +60,9 @@ const { verificarPermiso } = require('../middlewares/roles');
  */
 
 // Obtener seccionales principales
-router.get('/seccionales', auth, verificarPermiso('read'), subcircuitosController.obtenerSeccionales);
+router.get('/seccionales', auth, verificarPermiso('read'), validarAccesoSeccional, subcircuitosController.obtenerSeccionales);
 
 // Obtener subcircuitos por seccional
-router.get('/', auth, verificarPermiso('read'), subcircuitosController.obtenerSubcircuitosPorSeccional);
+router.get('/', auth, verificarPermiso('read'), validarAccesoSeccional, subcircuitosController.obtenerSubcircuitosPorSeccional);
 
 module.exports = router;

@@ -1,10 +1,15 @@
 const SubcircuitosModel = require('../models/subcircuitosModel');
+const { filtrarPorSeccional, agregarFiltroSeccional } = require('../middlewares/seccional');
 
 // Obtener las 14 seccionales principales
 exports.obtenerSeccionales = async (req, res, next) => {
   try {
     const seccionales = await SubcircuitosModel.getSeccionales();
-    res.json(seccionales);
+    
+    // Filtrar seccionales según el usuario
+    const seccionalesFiltradas = filtrarPorSeccional(req.user, seccionales, 'numero_seccional');
+    
+    res.json(seccionalesFiltradas);
   } catch (err) {
     console.error('Error al obtener seccionales:', err);
     res.status(500).json({ 

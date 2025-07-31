@@ -3,6 +3,7 @@ const router = express.Router();
 const verificarToken = require("../middlewares/auth");
 const verificarRol = require("../middlewares/roles");
 const { verificarPermiso } = require("../middlewares/roles");
+const { validarAccesoSeccional } = require('../middlewares/seccional');
 const resultadosController = require('../controllers/resultadosController');
 
 /**
@@ -212,10 +213,10 @@ const resultadosController = require('../controllers/resultadosController');
  */
 
 // Rutas principales
-router.get("/", verificarToken, verificarPermiso("read"), resultadosController.obtenerResultados);
-router.get("/combinados", verificarToken, verificarPermiso("read"), resultadosController.obtenerResultadosCombinados);
-router.post("/", verificarToken, verificarPermiso("write"), resultadosController.crearResultado);
-router.delete("/:id", verificarToken, verificarPermiso("delete"), resultadosController.eliminarResultado);
-router.put("/:id", verificarToken, verificarPermiso("write"), resultadosController.modificarResultado);
+router.get("/", verificarToken, verificarPermiso("read"), validarAccesoSeccional, resultadosController.obtenerResultados);
+router.get("/combinados", verificarToken, verificarPermiso("read"), validarAccesoSeccional, resultadosController.obtenerResultadosCombinados);
+router.post("/", verificarToken, verificarPermiso("write"), validarAccesoSeccional, resultadosController.crearResultado);
+router.delete("/:id", verificarToken, verificarPermiso("delete"), validarAccesoSeccional, resultadosController.eliminarResultado);
+router.put("/:id", verificarToken, verificarPermiso("write"), validarAccesoSeccional, resultadosController.modificarResultado);
 
 module.exports = router;
